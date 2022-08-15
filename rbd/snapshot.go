@@ -8,7 +8,7 @@ import "C"
 import (
 	"unsafe"
 
-	ts "github.com/ceph/go-ceph/internal/timespec"
+	ts "github.com/cyanjc321/go-ceph/internal/timespec"
 )
 
 // Snapshot represents a snapshot on a particular rbd image.

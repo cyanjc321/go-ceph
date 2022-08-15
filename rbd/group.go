@@ -10,9 +10,9 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/ceph/go-ceph/internal/cutil"
-	"github.com/ceph/go-ceph/internal/retry"
-	"github.com/ceph/go-ceph/rados"
+	"github.com/cyanjc321/go-ceph/internal/cutil"
+	"github.com/cyanjc321/go-ceph/internal/retry"
+	"github.com/cyanjc321/go-ceph/rados"
 )
 
 // GroupCreate is used to create an image group.

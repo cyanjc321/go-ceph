@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	ccom "github.com/ceph/go-ceph/common/commands"
+	ccom "github.com/cyanjc321/go-ceph/common/commands"
 )
 
 // NewTraceCommander is a RadosCommander that wraps a given RadosCommander
