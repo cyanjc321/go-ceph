@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ceph/go-ceph/internal/commands"
+	"github.com/cyanjc321/go-ceph/internal/commands"
 )
 
 var ssList1 = `

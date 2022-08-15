@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ceph/go-ceph/internal/admintest"
-	"github.com/ceph/go-ceph/rados"
-	"github.com/ceph/go-ceph/rbd"
+	"github.com/cyanjc321/go-ceph/internal/admintest"
+	"github.com/cyanjc321/go-ceph/rados"
+	"github.com/cyanjc321/go-ceph/rbd"
 )
 
 var (

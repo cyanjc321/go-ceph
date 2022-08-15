@@ -1,4 +1,4 @@
-package main
+package rados
 
 // #cgo LDFLAGS: -lrados -lradosstriper
 // #include <errno.h>
@@ -8,7 +8,6 @@ package main
 import "C"
 
 import (
-	"fmt"
 	"unsafe"
 )
 

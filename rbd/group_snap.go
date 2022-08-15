@@ -21,9 +21,9 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/ceph/go-ceph/internal/callbacks"
-	"github.com/ceph/go-ceph/internal/retry"
-	"github.com/ceph/go-ceph/rados"
+	"github.com/cyanjc321/go-ceph/internal/callbacks"
+	"github.com/cyanjc321/go-ceph/internal/retry"
+	"github.com/cyanjc321/go-ceph/rados"
 )
 
 // GroupSnapCreate will create a group snapshot.

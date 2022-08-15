@@ -14,8 +14,8 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/ceph/go-ceph/internal/cutil"
-	"github.com/ceph/go-ceph/internal/retry"
+	"github.com/cyanjc321/go-ceph/internal/cutil"
+	"github.com/cyanjc321/go-ceph/internal/retry"
 )
 
 // XattrFlags are used to control the behavior of set-xattr calls.

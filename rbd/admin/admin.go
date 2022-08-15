@@ -6,7 +6,7 @@ package admin
 import (
 	"fmt"
 
-	ccom "github.com/ceph/go-ceph/common/commands"
+	ccom "github.com/cyanjc321/go-ceph/common/commands"
 )
 
 // RBDAdmin is used to administrate rbd volumes and pools.

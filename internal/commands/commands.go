@@ -3,8 +3,8 @@ package commands
 import (
 	"encoding/json"
 
-	ccom "github.com/ceph/go-ceph/common/commands"
-	"github.com/ceph/go-ceph/rados"
+	ccom "github.com/cyanjc321/go-ceph/common/commands"
+	"github.com/cyanjc321/go-ceph/rados"
 )
 
 func validate(m interface{}) error {

@@ -14,7 +14,7 @@ Snippet usage example:
 package main
 
 import (
-    "github.com/ceph/go-ceph/rgw/admin"
+    "github.com/cyanjc321/go-ceph/rgw/admin"
 )
 
 func main() {

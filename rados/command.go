@@ -8,7 +8,7 @@ import "C"
 import (
 	"unsafe"
 
-	"github.com/ceph/go-ceph/internal/cutil"
+	"github.com/cyanjc321/go-ceph/internal/cutil"
 )
 
 func radosBufferFree(p unsafe.Pointer) {
