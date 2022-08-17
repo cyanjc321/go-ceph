@@ -48,4 +48,4 @@ func (rs *RadosStriper) Read(oid string, data []byte, offset uint64) (int, error
 	return 0, getError(ret)
 }
 
-func (rs *RadosStriper) Stat(ioctx rados.IOContext, object string) (stat rados.ObjectStat, err error)
+func (rs *RadosStriper) Stat(ioctx IOContext, object string) (stat ObjectStat, err error)
