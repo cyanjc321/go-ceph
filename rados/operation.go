@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/ceph/go-ceph/internal/log"
+	"github.com/cyanjc321/go-ceph/internal/log"
 )
 
 // The file operation.go exists to support both read op and write op types that

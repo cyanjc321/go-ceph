@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ceph/go-ceph/rados"
+	"github.com/cyanjc321/go-ceph/rados"
 )
 
 const (
