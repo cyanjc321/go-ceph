@@ -8,6 +8,7 @@ package rados
 import "C"
 
 import (
+	"time"
 	"unsafe"
 )
 
@@ -24,7 +25,22 @@ func NewRadosStriper(ioctx IOContext) *RadosStriper {
 	return nil
 }
 
-func (rs *RadosStriper) Write(oid string, data []byte, offset uint64) error
+func (rs *RadosStriper) Write(oid string, data []byte, offset uint64) error {
+	coid := C.CString(oid)
+	defer C.free(unsafe.Pointer(coid))
+
+	dataPointer := unsafe.Pointer(nil)
+	if len(data) > 0 {
+		dataPointer = unsafe.Pointer(&data[0])
+	}
+
+	ret := C.rados_striper_write(rs.striper, coid,
+		(*C.char)(dataPointer),
+		(C.size_t)(len(data)),
+		(C.uint64_t)(offset))
+
+	return getError(ret)
+}
 
 func (rs *RadosStriper) Read(oid string, data []byte, offset uint64) (int, error) {
 	coid := C.CString(oid)
@@ -48,4 +64,23 @@ func (rs *RadosStriper) Read(oid string, data []byte, offset uint64) (int, error
 	return 0, getError(ret)
 }
 
-func (rs *RadosStriper) Stat(ioctx IOContext, object string) (stat ObjectStat, err error)
+func (rs *RadosStriper) Stat(ioctx IOContext, object string) (stat ObjectStat, err error) {
+	var cPsize C.uint64_t
+	var cPmtime C.time_t
+	cObject := C.CString(object)
+	defer C.free(unsafe.Pointer(cObject))
+
+	ret := C.rados_striper_stat(
+		rs.striper,
+		cObject,
+		&cPsize,
+		&cPmtime)
+
+	if ret < 0 {
+		return ObjectStat{}, getError(ret)
+	}
+	return ObjectStat{
+		Size:    uint64(cPsize),
+		ModTime: time.Unix(int64(cPmtime), 0),
+	}, nil
+}
