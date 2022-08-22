@@ -64,7 +64,7 @@ func (rs *RadosStriper) Read(oid string, data []byte, offset uint64) (int, error
 	return 0, getError(ret)
 }
 
-func (rs *RadosStriper) Stat(ioctx IOContext, object string) (stat ObjectStat, err error) {
+func (rs *RadosStriper) Stat(object string) (stat ObjectStat, err error) {
 	var cPsize C.uint64_t
 	var cPmtime C.time_t
 	cObject := C.CString(object)
