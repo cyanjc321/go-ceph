@@ -268,6 +268,11 @@ api-check: implements-json
 api-update: implements-json
 	./contrib/apiage.py --mode=update --placeholder-versions
 
+api-promote: implements-json
+	./contrib/apiage.py --mode=promote \
+		--current-tag="$$(git describe --tags --abbrev=0)"
+	./contrib/apiage.py --mode=write-doc
+
 api-fix-versions:
 	./contrib/apiage.py --mode=fix-versions \
 		--current-tag="$$(git describe --tags --abbrev=0)"
@@ -275,6 +280,13 @@ api-fix-versions:
 
 api-doc:
 	./contrib/apiage.py --mode=write-doc
+
+api-report-updates: $(RESULTS_DIR)
+	./contrib/apiage.py --mode=find-updates \
+		--current-tag="$$(git describe --tags --abbrev=0)" \
+		> $(RESULTS_DIR)/updates-found.json
+	./contrib/apiage.py --mode=updates-to-markdown \
+		< $(RESULTS_DIR)/updates-found.json > $(RESULTS_DIR)/updates-found.md
 
 ifeq ($(RESULTS_DIR),)
 IMPLEMENTS_DIR:=$(PWD)/_results

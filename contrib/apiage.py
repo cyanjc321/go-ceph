@@ -150,6 +150,74 @@ def api_fix_versions(tracked, values, pred=None):
             _vfix(pkg, "expected_stable_version", api, values)
 
 
+def api_find_updates(tracked, values):
+    found = {"preview": [], "deprecated": []}
+    for pkg, pkg_api in tracked.items():
+        for api in pkg_api.get("deprecated_api", []):
+            erversion = api.get("expected_remove_version", "")
+            if erversion == values.get("next_version"):
+                found["deprecated"].append({
+                    "package": pkg,
+                    "name": api.get("name", ""),
+                    "expected_remove_version": erversion,
+                })
+        for api in pkg_api.get("preview_api", []):
+            esversion = api.get("expected_stable_version", "")
+            if esversion == values.get("next_version"):
+                found["preview"].append({
+                    "package": pkg,
+                    "name": api.get("name", ""),
+                    "expected_stable_version": esversion,
+                })
+    return found
+
+
+def api_promote(tracked, src, values):
+    changes = problems = 0
+    for pkg, pkg_api in src.items():
+        src_stable = pkg_api.get("stable_api", [])
+        src_preview = pkg_api.get("preview_api", [])
+        new_tracked_stable = new_tracked_preview = False
+        try:
+            tracked_stable = tracked.get(pkg, {})["stable_api"]
+        except KeyError:
+            tracked_stable = []
+            new_tracked_stable = True
+        try:
+            tracked_preview = tracked.get(pkg, {})["preview_api"]
+        except KeyError:
+            tracked_preview = []
+            new_tracked_preview = True
+        for api in src_stable:
+            indexed_stable = {a.get("name", ""): a for a in tracked_stable}
+            indexed_preview = {a.get("name", ""): a for a in tracked_preview}
+            name = api.get("name", "")
+            if name in indexed_preview and name not in indexed_stable:
+                # need to promote this api
+                if values.get("added_in_version"):
+                    # track some metadata. why not right?
+                    api["added_in_version"] = indexed_preview[name].get("added_in_version", "")
+                    api["became_stable_version"] = values["added_in_version"]
+                tracked_preview[:] = [a for n, a in indexed_preview.items() if n != name]
+                tracked_stable.append(api)
+                print("promoting to stable: {}:{}".format(pkg, name))
+                changes += 1
+            elif name in indexed_preview and name in indexed_preview:
+                print("bad state: {}:{} found in both preview and stable"
+                      .format(pkg, name))
+                problems += 1
+            elif name not in indexed_preview and name not in indexed_stable:
+                print("api not found in preview: {}:{}".format(pkg, name))
+                problems += 1
+            # else api is already stable. do nothing.
+        if new_tracked_stable and tracked_stable:
+            tracked[pkg]["stable_api"] = tracked_stable
+        if new_tracked_preview and tracked_preview:
+            tracked[pkg]["preview_api"] = tracked_preview
+    return changes, problems
+
+
+
 def format_markdown(tracked, outfh):
     print("<!-- GENERATED FILE: DO NOT EDIT DIRECTLY -->", file=outfh)
     print("", file=outfh)
@@ -158,7 +226,7 @@ def format_markdown(tracked, outfh):
     for pkg, pkg_api in tracked.items():
         print(f"## Package: {pkg}", file=outfh)
         print("", file=outfh)
-        if "preview_api" in pkg_api:
+        if "preview_api" in pkg_api and pkg_api["preview_api"]:
             print("### Preview APIs", file=outfh)
             print("", file=outfh)
             _table(
@@ -171,7 +239,7 @@ def format_markdown(tracked, outfh):
                 outfh=outfh,
             )
             print("", file=outfh)
-        if "deprecated_api" in pkg_api:
+        if "deprecated_api" in pkg_api and pkg_api["deprecated_api"]:
             print("### Deprecated APIs", file=outfh)
             print("", file=outfh)
             _table(
@@ -184,10 +252,28 @@ def format_markdown(tracked, outfh):
                 outfh=outfh,
             )
             print("", file=outfh)
-        if all(x not in pkg_api for x in ("preview_api", "deprecated_api")):
+        if (all(x not in pkg_api for x in ("preview_api", "deprecated_api")) or
+            all(x in pkg_api and not pkg_api[x] for x in ("preview_api", "deprecated_api"))):
             print("No Preview/Deprecated APIs found. "
                   "All APIs are considered stable.", file=outfh)
             print("", file=outfh)
+
+
+def format_updates_markdown(updates, outfh):
+    print("## Preview APIs due to become stable", file=outfh)
+    if not updates.get("preview"):
+        print("n/a", file=outfh)
+    for api in updates.get("preview", []):
+        print(f"* {api['package']}: {api['name']}", file=outfh)
+    print("", file=outfh)
+    print("", file=outfh)
+    print("## Deprecated APIs due to be removed", file=outfh)
+    if not updates.get("deprecated"):
+        print("n/a", file=outfh)
+    for api in updates.get("deprecated", []):
+        print(f"* {api['package']}/{api['name']}", file=outfh)
+    print("", file=outfh)
+    print("", file=outfh)
 
 
 def _table(data, columns, outfh):
@@ -295,7 +381,15 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=("compare", "update", "write-doc", "fix-versions"),
+        choices=(
+            "compare",
+            "update",
+            "write-doc",
+            "fix-versions",
+            "find-updates",
+            "updates-to-markdown",
+            "promote",
+        ),
         default="compare",
         help="either update current state or compare current state to source",
     )
@@ -347,14 +441,16 @@ def main():
     )
     cli = parser.parse_args()
 
-    api_src = read_json(cli.source) if cli.source else {}
     api_tracked = read_json(cli.current) if cli.current else {}
 
-    if not api_src:
-        print(
-            f"error: no source data found (path: {cli.source})", file=sys.stderr
-        )
-        sys.exit(1)
+    def _get_api_src():
+        api_src = read_json(cli.source) if cli.source else {}
+        if not api_src:
+            print(
+                f"error: no source data found (path: {cli.source})", file=sys.stderr
+            )
+            sys.exit(1)
+        return api_src
 
     if cli.current_tag:
         tag_to_versions(cli, cli.current_tag)
@@ -365,12 +461,14 @@ def main():
 
     if cli.mode == "compare":
         # just compare the json files. useful for CI
+        api_src = _get_api_src()
         pcount = api_compare(api_tracked, api_src)
         if pcount:
             print(f"error: {pcount} problems detected", file=sys.stderr)
             sys.exit(1)
     elif cli.mode == "update":
         # update the current/tracked apis with those from the source
+        api_src = _get_api_src()
         defaults = {}
         _setif(defaults, "added_in_version", cli.added_in_version)
         _setif(defaults, "expected_stable_version", cli.stable_in_version)
@@ -395,8 +493,33 @@ def main():
         _setif(values, "expected_remove_version", cli.remove_in_version)
         api_fix_versions(api_tracked, values=values, pred=_make_fix_filter(cli))
         write_json(cli.current, api_tracked)
+    elif cli.mode == "find-updates":
+        values = {}
+        _setif(values, "next_version", cli.added_in_version)
+        updates_needed = api_find_updates(api_tracked, values=values)
+        json.dump(updates_needed, sys.stdout, indent=2)
+        print()
+        if not (updates_needed.get("preview") or updates_needed.get("deprecated")):
+            sys.exit(1)
+    elif cli.mode == "promote":
+        values = {}
+        api_src = _get_api_src()
+        _setif(values, "added_in_version", cli.added_in_version)
+        ccount, pcount = api_promote(
+            api_tracked,
+            api_src,
+            values,
+        )
+        print("found {} apis to promote".format(ccount))
+        if pcount:
+            print(f"error: {pcount} problems detected", file=sys.stderr)
+            sys.exit(1)
+        write_json(cli.current, api_tracked)
     elif cli.mode == "write-doc":
         write_markdown(cli.document, api_tracked)
+    elif cli.mode == "updates-to-markdown":
+        updates_needed = json.load(sys.stdin)
+        format_updates_markdown(updates_needed, sys.stdout)
 
 
 if __name__ == "__main__":

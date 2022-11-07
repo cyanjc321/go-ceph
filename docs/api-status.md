@@ -8,16 +8,7 @@ No Preview/Deprecated APIs found. All APIs are considered stable.
 
 ## Package: cephfs/admin
 
-### Preview APIs
-
-Name | Added in Version | Expected Stable Version | 
----- | ---------------- | ----------------------- | 
-CloneStatus.GetFailure | v0.16.0 | v0.18.0 | 
-
-### Deprecated APIs
-
-Name | Deprecated in Version | Expected Removal Version | 
----- | --------------------- | ------------------------ | 
+No Preview/Deprecated APIs found. All APIs are considered stable.
 
 ## Package: rados
 
@@ -31,12 +22,6 @@ IOContext.Alignment | v0.17.0 | v0.19.0 |
 IOContext.RequiresAlignment | v0.17.0 | v0.19.0 | 
 
 ## Package: rbd
-
-### Preview APIs
-
-Name | Added in Version | Expected Stable Version | 
----- | ---------------- | ----------------------- | 
-Snapshot.Rename | v0.16.0 | v0.18.0 | 
 
 ### Deprecated APIs
 
@@ -71,14 +56,4 @@ No Preview/Deprecated APIs found. All APIs are considered stable.
 No Preview/Deprecated APIs found. All APIs are considered stable.
 
 ## Package: common/admin/nfs
-
-### Preview APIs
-
-Name | Added in Version | Expected Stable Version | 
----- | ---------------- | ----------------------- | 
-NewFromConn | v0.16.0 | v0.18.0 | 
-Admin.CreateCephFSExport | v0.16.0 | v0.18.0 | 
-Admin.RemoveExport | v0.16.0 | v0.18.0 | 
-Admin.ListDetailedExports | v0.16.0 | v0.18.0 | 
-Admin.ExportInfo | v0.16.0 | v0.18.0 | 
 
